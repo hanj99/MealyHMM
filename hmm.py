@@ -18,7 +18,7 @@ class Hmm:
         self.dag.add_node(8, {'sym':'n'})
         self.dag.add_node(9, {'sym':'final'})
 
-        # self transition
+        # self transition (except final state)
         for state in range(len(self.dag)-1):
             self.dag.add_path([state,state])
 
@@ -31,32 +31,37 @@ class Hmm:
         # actress 
         self.dag.add_path([0,1,2,3,6,7,8,9])
 
-        # transitional probabilities
-        for state in range(len(self.dag)):
+        # transitional probabilities (except final state)
+        for state in range(len(self.dag)-1):
             neighbors = self.dag.neighbors(state)
-            probs = [random.uniform(0,1) for x in range(len(neighbors)*2-1)] 
-            norm_probs = [x/sum(probs) for x in probs]
+            tran_probs = self.getProbabilityList( len(neighbors)*2-1 ) 
              
             idx = 0
             for nb in neighbors:
                 if state == nb:
-                    self.dag.edge[state][nb]['tran_prob'] = norm_probs[idx]
-                    idx += 1
+                    self.dag.edge[state][nb]['tran_prob'] = tran_probs[idx]
 
-                    probs = [random.uniform(0,1) for x in range(len(self.alphabet))] 
-                    norm_probs = [x/sum(probs) for x in probs]
+                    alphabet_probs = self.getProbabilityList( len(self.alphabet) ) 
                     for i, c in enumerate(self.alphabet):
-                        self.dag.edge[state][nb][c] = norm_probs[i]
+                        self.dag.edge[state][nb][c] = alphabet_probs[i]
                 else:
-                    self.dag.edge[state][nb]['tran_prob'] = norm_probs[idx]
+                    self.dag.edge[state][nb]['tran_prob'] = tran_probs[idx]
                     idx += 1
-                    self.dag.edge[state][nb]['epsil_tran_prob'] = norm_probs[idx]
-                    idx += 1
+                    self.dag.edge[state][nb]['epsil_tran_prob'] = tran_probs[idx]
 
-                    probs = [random.uniform(0,1) for x in range(len(self.alphabet))] 
-                    norm_probs = [x/sum(probs) for x in probs]
+                    alphabet_probs = self.getProbabilityList( len(self.alphabet) ) 
                     for i, c in enumerate(self.alphabet):
-                        self.dag.edge[state][nb][c] = norm_probs[i]
+                        self.dag.edge[state][nb][c] = alphabet_probs[i]
+
+                idx += 1
+
+    def getProbabilityList(self, n):
+        probs = [random.uniform(0,1) for x in range(n)] 
+        norm_probs = [x/sum(probs) for x in probs]
+        return norm_probs
+
+    def getInitialState(self):
+        return 0 
 
     def getNumOfStates(self):
         return len( self.dag )
