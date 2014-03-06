@@ -12,7 +12,7 @@ class AlphaCalculator:
 
     def init_alpha(self):
         self.alpha[0][0] = 1.0
-        self.queue.put(0)
+        self.queue.put( self.hmm.getRootState() )
 
         while not self.queue.empty():
             state = self.queue.get()
