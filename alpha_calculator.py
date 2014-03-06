@@ -33,6 +33,7 @@ class AlphaCalculator:
 
                     # from self (horizontal move)
                     self.alpha[state][t] += self.alpha[state][t-1] * self.hmm.getObsProb(state, state, self.seq[t-1]) * self.hmm.getTranProb(state, state)
+
                     # from parent (diagonal move)
                     self.alpha[successor][t] += self.alpha[state][t-1] * self.hmm.getObsProb(state, successor, self.seq[t-1]) * self.hmm.getTranProb(state, successor)
 
