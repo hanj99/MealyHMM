@@ -6,7 +6,33 @@ class Hmm:
     def __init__(self):
         self.dag = networkx.DiGraph()
         self.alphabet = None
-        self.case2()
+        self.case3()
+
+    # fundamentals of speaker recognition (p.425)
+    def case3(self):
+        self.alphabet = ['a','b']
+        self.dag.add_node(0, {'sym':'x1'})
+        self.dag.add_node(1, {'sym':'x2'})
+        self.dag.add_node(2, {'sym':'x3'})
+        self.dag.add_edges_from([(0,0),(0,1),(1,1),(1,2)])
+
+        self.dag.edge[0][0]['tran_prob'] = 0.5
+        self.dag.edge[0][0]['a'] = 0.8 
+        self.dag.edge[0][0]['b'] = 0.2
+
+        self.dag.edge[0][1]['tran_prob'] = 0.3
+        self.dag.edge[0][1]['epsil_tran_prob'] = 0.2
+        self.dag.edge[0][1]['a'] = 0.7
+        self.dag.edge[0][1]['b'] = 0.3
+
+        self.dag.edge[1][1]['tran_prob'] = 0.4
+        self.dag.edge[1][1]['a'] = 0.5
+        self.dag.edge[1][1]['b'] = 0.5
+
+        self.dag.edge[1][2]['tran_prob'] = 0.5
+        self.dag.edge[1][2]['epsil_tran_prob'] = 0.1
+        self.dag.edge[1][2]['a'] = 0.3
+        self.dag.edge[1][2]['b'] = 0.7
 
     # fundamentals of speaker recognition (p.438)
     def case2(self):
