@@ -5,8 +5,36 @@ import networkx
 class Hmm:
     def __init__(self):
         self.dag = networkx.DiGraph()
-        self.alphabet = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
+        self.alphabet = None
+        self.case2()
 
+    # fundamentals of speaker recognition (p.438)
+    def case2(self):
+        self.alphabet = ['a','b']
+        self.dag.add_node(0, {'sym':'x1'})
+        self.dag.add_node(1, {'sym':'x2'})
+        self.dag.add_node(2, {'sym':'x3'})
+        self.dag.add_edges_from([(0,0),(0,1),(1,1),(1,2)])
+
+        self.dag.edge[0][0]['tran_prob'] = 1.0/3.0 
+        self.dag.edge[0][0]['a'] = 1.0/2.0 
+        self.dag.edge[0][0]['b'] = 1.0/2.0 
+
+        self.dag.edge[0][1]['tran_prob'] = 1.0/3.0 
+        self.dag.edge[0][1]['epsil_tran_prob'] = 1.0/3.0 
+        self.dag.edge[0][1]['a'] = 1.0/2.0 
+        self.dag.edge[0][1]['b'] = 1.0/2.0 
+
+        self.dag.edge[1][1]['tran_prob'] = 1.0/2.0 
+        self.dag.edge[1][1]['a'] = 1.0/2.0 
+        self.dag.edge[1][1]['b'] = 1.0/2.0 
+
+        self.dag.edge[1][2]['tran_prob'] = 1.0/2.0 
+        self.dag.edge[1][2]['a'] = 1.0/2.0 
+        self.dag.edge[1][2]['b'] = 1.0/2.0 
+
+    def case1(self):
+        self.alphabet = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
         self.dag.add_node(0, {'sym':'initial'})
         self.dag.add_node(1, {'sym':'a'})
         self.dag.add_node(2, {'sym':'c'})
@@ -34,14 +62,14 @@ class Hmm:
         # transitional probabilities (except final state)
         for state in range(len(self.dag)-1):
             neighbors = self.dag.neighbors(state)
-            tran_probs = self.getProbabilityList( len(neighbors)*2-1 ) 
+            tran_probs = self.getRandomProbabilityList( len(neighbors)*2-1 ) 
              
             idx = 0
             for nb in neighbors:
                 if state == nb:
                     self.dag.edge[state][nb]['tran_prob'] = tran_probs[idx]
 
-                    alphabet_probs = self.getProbabilityList( len(self.alphabet) ) 
+                    alphabet_probs = self.getRandomProbabilityList( len(self.alphabet) ) 
                     for i, c in enumerate(self.alphabet):
                         self.dag.edge[state][nb][c] = alphabet_probs[i]
                 else:
@@ -49,13 +77,16 @@ class Hmm:
                     idx += 1
                     self.dag.edge[state][nb]['epsil_tran_prob'] = tran_probs[idx]
 
-                    alphabet_probs = self.getProbabilityList( len(self.alphabet) ) 
+                    alphabet_probs = self.getRandomProbabilityList( len(self.alphabet) ) 
                     for i, c in enumerate(self.alphabet):
                         self.dag.edge[state][nb][c] = alphabet_probs[i]
 
                 idx += 1
 
-    def getProbabilityList(self, n):
+    def getRootState(self):
+        return 0
+
+    def getRandomProbabilityList(self, n):
         probs = [random.uniform(0,1) for x in range(n)] 
         norm_probs = [x/sum(probs) for x in probs]
         return norm_probs
@@ -79,10 +110,19 @@ class Hmm:
         return successors
 
     def getObsProb(self, s1, s2, o):
-        return self.dag.edge[s1][s2][o]
+        try:
+          return self.dag.edge[s1][s2][o]
+        except KeyError:
+          return 0.0
 
     def getTranProb(self, s1, s2):
-        return self.dag.edge[s1][s2]['tran_prob']
+        try:
+          return self.dag.edge[s1][s2]['tran_prob']
+        except KeyError:
+          return 0.0
 
     def getEpsilonTranProb(self, s1, s2):
-        return self.dag.edge[s1][s2]['epsil_tran_prob']
+        try:
+          return self.dag.edge[s1][s2]['epsil_tran_prob']
+        except KeyError:
+          return 0.0

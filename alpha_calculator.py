@@ -23,7 +23,7 @@ class AlphaCalculator:
 
     def calc_alpha(self):
         for t in range(1, self.seqLen):
-            self.queue.put(0)
+            self.queue.put( self.hmm.getRootState() )
 
             while not self.queue.empty():
                 state = self.queue.get()
@@ -32,7 +32,6 @@ class AlphaCalculator:
                     self.queue.put(successor)
 
                     # from self (horizontal move)
-                    print t
                     self.alpha[state][t] += self.alpha[state][t-1] * self.hmm.getObsProb(state, state, self.seq[t-1]) * self.hmm.getTranProb(state, state)
                     # from parent (diagonal move)
                     self.alpha[successor][t] += self.alpha[state][t-1] * self.hmm.getObsProb(state, successor, self.seq[t-1]) * self.hmm.getTranProb(state, successor)
