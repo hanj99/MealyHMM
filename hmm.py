@@ -109,8 +109,11 @@ class Hmm:
 
                 idx += 1
 
-    def getRootState(self):
+    def getInitialState(self):
         return 0
+
+    def getFinalState(self):
+        return len( self.dag ) - 1
 
     def getRandomProbabilityList(self, n):
         probs = [random.uniform(0,1) for x in range(n)] 

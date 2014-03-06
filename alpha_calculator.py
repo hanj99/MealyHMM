@@ -12,7 +12,7 @@ class AlphaCalculator:
 
     def init_alpha(self):
         self.alpha[0][0] = 1.0
-        self.queue.put( self.hmm.getRootState() )
+        self.queue.put( self.hmm.getInitialState() )
 
         while not self.queue.empty():
             state = self.queue.get()
@@ -23,7 +23,7 @@ class AlphaCalculator:
 
     def calc_alpha(self):
         for t in range(1, self.seqLen):
-            self.queue.put( self.hmm.getRootState() )
+            self.queue.put( self.hmm.getInitialState() )
 
             while not self.queue.empty():
                 state = self.queue.get()
