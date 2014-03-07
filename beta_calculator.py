@@ -1,7 +1,7 @@
 import numpy
 from Queue import Queue
 
-class BetaCalculator
+class BetaCalculator:
     def __init__(self, hmm, seq):
         self.hmm = hmm
         self.seq = seq
@@ -12,7 +12,7 @@ class BetaCalculator
 
     def init_beta(self):
         final_state = self.hmm.getFinalState()
-        self.beta[final_state][self.seqLen] = 1.0
+        self.beta[final_state][self.seqLen-1] = 1.0
         self.queue.put( final_state )
 
         while not self.queue.empty():
@@ -20,23 +20,26 @@ class BetaCalculator
 
             for predecessor in self.hmm.getPredecessors(state):
                 self.queue.put(predecessor)
-                self.beta[predecessor][self.seqLen] = self.beta[state][self.seqLen] * self.hmm.getEpsilonTranProb(predecessor, state)
+                self.beta[predecessor][self.seqLen-1] = self.beta[state][self.seqLen-1] * self.hmm.getEpsilonTranProb(predecessor, state)
 
-    # FIXME
     def calc_beta(self):
-        for t in range(self.seqLen - 1, 0, -1):
-            for s in range(self.numOfStates - 1, -1, -1):
-                cs_list = self.hmm.getChildrenState(s)
+        for t in range(self.seqLen - 2, -1, -1):
+            self.queue.put( self.hmm.getFinalState() )
                     
-                # from self
-                self.beta[s][t] += self.beta[s][t+1] * self.hmm.getObsProb(self.seq[t+1], s, s) * self.hmm.getTranProb(s, s)
+            while not self.queue.empty():
+                state = self.queue.get()
 
-                # from children
-                for cs in cs_list:
-                    self.beta[s][t] += self.beta[cs][t+1] * self.hmm.getObsProb(self.seq[t+1], s, cs) * self.hmm.getTranProb(s, cs)
-                    self.beta[s][t] += self.beta[cs][t] * self.hmm.getEpsilonTranProb(s, cs)
+                for predecessor in self.hmm.getPredecessors(state):
+                    self.queue.put(predecessor)
 
+                    # vertical move
+                    self.beta[predecessor][t] += self.beta[state][t] * self.hmm.getEpsilonTranProb(predecessor, state)
 
+                    # diagonal move
+                    self.beta[predecessor][t] += self.beta[state][t+1] * self.hmm.getObsProb(predecessor, state, self.seq[t]) * self.hmm.getTranProb(predecessor, state)
+
+                    # horizontal move
+                    self.beta[predecessor][t] += self.beta[predecessor][t+1] * self.hmm.getObsProb(predecessor, predecessor, self.seq[t]) * self.hmm.getTranProb(predecessor, predecessor)
 
     def getBeta(self):
         self.init_beta()
