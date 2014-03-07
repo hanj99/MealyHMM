@@ -138,6 +138,10 @@ class Hmm:
             successors.remove(state)
         return successors
 
+    def getNeighbors(self, state):
+        neighbors = self.dag.successors(state)
+        return neighbors 
+
     def getObsProb(self, s1, s2, o):
         try:
           return self.dag.edge[s1][s2][o]
@@ -155,3 +159,15 @@ class Hmm:
           return self.dag.edge[s1][s2]['epsil_tran_prob']
         except KeyError:
           return 0.0
+
+    def setTranProb(self, s1, s2, p):
+        try:
+          self.dag.edge[s1][s2]['tran_prob'] = p
+        except KeyError:
+          pass 
+
+    def setEpsilonTranProb(self, s1, s2, p):
+        try:
+          self.dag.edge[s1][s2]['epsil_tran_prob'] = p
+        except KeyError:
+          pass
