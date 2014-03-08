@@ -1,4 +1,3 @@
-import numpy
 import copy
 from Queue import Queue
 
@@ -10,8 +9,6 @@ class TransitionEstimator:
         self.beta = beta
         self.seq = seq
         self.queue = Queue()
-        self.numOfStates = hmm.getNumOfStates()
-        self.seqLen = len(seq) + 1
 
     def estimate_transition_probability(self):
         self.queue.put( self.hmm.getInitialState() )

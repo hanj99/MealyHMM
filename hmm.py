@@ -109,6 +109,9 @@ class Hmm:
 
                 idx += 1
 
+    def getAlphabet(self):
+        return self.alphabet
+
     def getInitialState(self):
         return 0
 
@@ -159,6 +162,12 @@ class Hmm:
           return self.dag.edge[s1][s2]['epsil_tran_prob']
         except KeyError:
           return 0.0
+
+    def setObsProb(self, s1, s2, o, p):
+        try:
+          self.dag.edge[s1][s2][o] = p
+        except KeyError:
+          pass
 
     def setTranProb(self, s1, s2, p):
         try:
