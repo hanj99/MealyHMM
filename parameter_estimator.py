@@ -32,37 +32,31 @@ class ParameterEstimator:
             state = self.queue.get()
             neighbors = self.hmm.getNeighbors(state)
 
-            total_neighbors_prob = 0.0
+            total_tran_prob = 0.0
             for nb in neighbors:
-
-                # transition
-                prob = 0.0
+                tran_prob = 0.0
                 for n in range(1, len(self.seq)+1):
-                    prob += self.alpha[state][n-1] * self.hmm.getObsProb(state, nb, self.seq[n-1]) * self.hmm.getTranProb(state, nb) * self.beta[nb][n]
+                    tran_prob += self.alpha[state][n-1] * self.hmm.getObsProb(state, nb, self.seq[n-1]) * self.hmm.getTranProb(state, nb) * self.beta[nb][n]
 
-                # not yet normalized
-                self.new_hmm.setTranProb(state, nb, prob)
-                total_neighbors_prob += prob
+                epsil_tran_prob = 0.0
+                for n in range(0, len(self.seq)+1):
+                    epsil_tran_prob += self.alpha[state][n] * self.hmm.getEpsilonTranProb(state, nb) * self.beta[nb][n]
 
-                # epsilon transition is not allowed on the self transition
+                # need to be normalized
+                self.new_hmm.setTranProb(state, nb, tran_prob)
+                self.new_hmm.setEpsilonTranProb(state, nb, epsil_tran_prob)
+                total_tran_prob += tran_prob
+                total_tran_prob += epsil_tran_prob
+
+                # move to the next state
                 if state != nb:
                     self.queue.put(nb)
 
-                    # epsilon transition
-                    prob = 0.0
-                    for n in range(0, len(self.seq)):
-                        prob += self.alpha[state][n] * self.hmm.getEpsilonTranProb(state, nb) * self.beta[nb][n]
-
-                    # not yet normalized
-                    self.new_hmm.setEpsilonTranProb(state, nb, prob)
-                    total_neighbors_prob += prob
-
             # normalize
             for nb in neighbors:
-                self.new_hmm.setTranProb(state, nb, self.new_hmm.getTranProb(state, nb) / total_neighbors_prob)
-
-                if state != nb:
-                    self.new_hmm.setEpsilonTranProb(state, nb, self.new_hmm.getEpsilonTranProb(state, nb) / total_neighbors_prob)
+                if total_tran_prob > 0:
+                    self.new_hmm.setTranProb(state, nb, self.new_hmm.getTranProb(state, nb) / total_tran_prob)
+                    self.new_hmm.setEpsilonTranProb(state, nb, self.new_hmm.getEpsilonTranProb(state, nb) / total_tran_prob)
 
 
     # this is an implementation of the equation (13.31) of the Fundamentals of speaker recognition
@@ -75,7 +69,6 @@ class ParameterEstimator:
 
             for nb in neighbors:
                 denominator= 0.0
-
                 for n in range(1, len(self.seq)+1):
                     denominator += self.alpha[state][n-1] * self.hmm.getObsProb(state, nb, self.seq[n-1]) * self.hmm.getTranProb(state, nb) * self.beta[nb][n]
 
@@ -91,5 +84,6 @@ class ParameterEstimator:
                     
                     self.new_hmm.setObsProb(state, nb, a, numerator/denominator)
 
+                # move to the next state
                 if state != nb:
                     self.queue.put(nb)

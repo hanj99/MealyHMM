@@ -50,7 +50,8 @@ class Hmm:
         self.dag.add_node(0, {'sym':'x1'})
         self.dag.add_node(1, {'sym':'x2'})
         self.dag.add_node(2, {'sym':'x3'})
-        self.dag.add_edges_from([(0,0),(0,1),(1,1),(1,2)])
+        self.dag.add_node(3, {'sym':'final'})
+        self.dag.add_edges_from([(0,0),(0,1),(1,1),(1,2),(2,3)])
 
         self.dag.edge[0][0]['tran_prob'] = 1.0/3.0 
         self.dag.edge[0][0]['a'] = 0.6
@@ -68,6 +69,8 @@ class Hmm:
         self.dag.edge[1][2]['tran_prob'] = 1.0/2.0 
         self.dag.edge[1][2]['a'] = 1.0/2.0 
         self.dag.edge[1][2]['b'] = 1.0/2.0 
+
+        self.dag.edge[2][3]['epsil_tran_prob'] = 1.0
 
     def case1(self):
         self.alphabet = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
