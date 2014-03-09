@@ -40,14 +40,17 @@ class AlphaCalculator:
 
                 # self transition (horizontal move)
                 self.alpha[state][t] += self.alpha[state][t-1] * self.hmm.getObsProb(state, state, self.seq[t-1]) * self.hmm.getTranProb(state, state)
-                for successor in self.hmm.getSuccessors(state):
-                    self.queue.put(successor)
 
-                    # from parent (diagonal move)
-                    self.alpha[successor][t] += self.alpha[state][t-1] * self.hmm.getObsProb(state, successor, self.seq[t-1]) * self.hmm.getTranProb(state, successor)
+                for predecessor in self.hmm.getPredecessors(state):
+                    # diagonal move
+                    self.alpha[state][t] += self.alpha[predecessor][t-1] * self.hmm.getObsProb(predecessor, state, self.seq[t-1]) * self.hmm.getTranProb(predecessor, state)
 
                     # epsilon transition (vertical move)
-                    self.alpha[successor][t] += self.alpha[state][t] * self.hmm.getEpsilonTranProb(state, successor)
+                    self.alpha[state][t] += self.alpha[predecessor][t] * self.hmm.getEpsilonTranProb(predecessor, state)
+
+                # move to the next state
+                for successor in self.hmm.getSuccessors(state):
+                    self.queue.put(successor)
 
     def getAlpha(self):
         self.init_alpha()
