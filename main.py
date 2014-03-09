@@ -1,8 +1,6 @@
 import hmm
 import alpha_calculator as ac
 import beta_calculator as bc 
-import transition_estimator as te 
-import observation_estimator as oe 
 import parameter_estimator as pe 
 
 h = hmm.Hmm()

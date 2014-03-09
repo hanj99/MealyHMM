@@ -53,8 +53,8 @@ class Hmm:
         self.dag.add_edges_from([(0,0),(0,1),(1,1),(1,2)])
 
         self.dag.edge[0][0]['tran_prob'] = 1.0/3.0 
-        self.dag.edge[0][0]['a'] = 1.0/2.0 
-        self.dag.edge[0][0]['b'] = 1.0/2.0 
+        self.dag.edge[0][0]['a'] = 0.5
+        self.dag.edge[0][0]['b'] = 0.5
 
         self.dag.edge[0][1]['tran_prob'] = 1.0/3.0 
         self.dag.edge[0][1]['epsil_tran_prob'] = 1.0/3.0 

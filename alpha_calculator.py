@@ -38,16 +38,15 @@ class AlphaCalculator:
             while not self.queue.empty():
                 state = self.queue.get()
 
+                # self transition (horizontal move)
+                self.alpha[state][t] += self.alpha[state][t-1] * self.hmm.getObsProb(state, state, self.seq[t-1]) * self.hmm.getTranProb(state, state)
                 for successor in self.hmm.getSuccessors(state):
                     self.queue.put(successor)
-
-                    # from self (horizontal move)
-                    self.alpha[state][t] += self.alpha[state][t-1] * self.hmm.getObsProb(state, state, self.seq[t-1]) * self.hmm.getTranProb(state, state)
 
                     # from parent (diagonal move)
                     self.alpha[successor][t] += self.alpha[state][t-1] * self.hmm.getObsProb(state, successor, self.seq[t-1]) * self.hmm.getTranProb(state, successor)
 
-                    # from epsilon (vertical move)
+                    # epsilon transition (vertical move)
                     self.alpha[successor][t] += self.alpha[state][t] * self.hmm.getEpsilonTranProb(state, successor)
 
     def getAlpha(self):

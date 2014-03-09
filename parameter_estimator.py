@@ -83,7 +83,6 @@ class ParameterEstimator:
                 if denominator == 0.0:
                     continue
 
-                total_obs_prob = 0.0
                 for a in self.hmm.getAlphabet():
                     numerator= 0.0
                     for n in range(1, len(self.seq)+1):
@@ -91,7 +90,6 @@ class ParameterEstimator:
                             numerator += self.alpha[state][n-1] * self.hmm.getObsProb(state, nb, self.seq[n-1]) * self.hmm.getTranProb(state, nb) * self.beta[nb][n]
                     
                     self.new_hmm.setObsProb(state, nb, a, numerator/denominator)
-                    total_obs_prob += numerator/denominator 
 
                 if state != nb:
                     self.queue.put(nb)
