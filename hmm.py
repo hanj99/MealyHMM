@@ -16,7 +16,7 @@ class Hmm:
     def __init__(self):
         self.dag = networkx.DiGraph()
         self.alphabet = None
-        self.case2()
+        self.case3()
 
     # fundamentals of speaker recognition (p.425)
     def case3(self):
