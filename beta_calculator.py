@@ -17,33 +17,31 @@ class BetaCalculator:
         self.seq = seq
         self.queue = Queue()
         self.numOfStates = hmm.getNumOfStates()
-        self.seqLen = len(seq) + 1
-        self.beta = numpy.zeros( self.numOfStates * self.seqLen ).reshape( self.numOfStates, self.seqLen )
+        self.initialState = hmm.getInitialState()
+        self.beta = numpy.zeros( self.numOfStates * (len(self.seq)+1) ).reshape( self.numOfStates, (len(self.seq)+1) )
 
     def init_beta(self):
         final_state = self.hmm.getFinalState()
-        self.beta[final_state][self.seqLen-1] = 1.0
+        self.beta[final_state][len(self.seq)] = 1.0
         self.queue.put( final_state )
 
         while not self.queue.empty():
             state = self.queue.get()
 
             for predecessor in self.hmm.getPredecessors(state):
-                self.queue.put(predecessor)
-                self.beta[predecessor][self.seqLen-1] = self.beta[state][self.seqLen-1] * self.hmm.getEpsilonTranProb(predecessor, state)
+                if predecessor != state:
+                    self.queue.put(predecessor)
+                    self.beta[predecessor][len(self.seq)] += self.beta[state][len(self.seq)] * self.hmm.getEpsilonTranProb(predecessor, state)
 
     def calc_beta(self):
-        for t in range(self.seqLen - 2, -1, -1):
+        for t in range( len(self.seq)-1, -1, -1):
             self.queue.put( self.hmm.getFinalState() )
                     
             while not self.queue.empty():
                 state = self.queue.get()
 
-                # horizontal move
-                self.beta[state][t] += self.beta[state][t+1] * self.hmm.getObsProb(state, state, self.seq[t]) * self.hmm.getTranProb(state, state)
-
                 for successor in self.hmm.getSuccessors(state):
-                    # diagonal move
+                    # diagonal or horizontal move
                     self.beta[state][t] += self.beta[successor][t+1] * self.hmm.getObsProb(state, successor, self.seq[t]) * self.hmm.getTranProb(state, successor)
 
                     # vertical move
@@ -51,7 +49,14 @@ class BetaCalculator:
 
                 # move to the next state
                 for predecessor in self.hmm.getPredecessors(state):
-                    self.queue.put(predecessor)
+                    if state != predecessor and predecessor != self.initialState:
+                        self.queue.put(predecessor)
+
+            # initial state is calculated lastly because it cannot be computed until its successors are calculated.
+            for successor in self.hmm.getSuccessors( self.initialState ):
+                self.beta[self.initialState][t] += self.beta[successor][t+1] * self.hmm.getObsProb(self.initialState, successor, self.seq[t]) * self.hmm.getTranProb(self.initialState, successor)
+                self.beta[self.initialState][t] += self.beta[successor][t] * self.hmm.getEpsilonTranProb(self.initialState, successor)
+            
 
     def getBeta(self):
         self.init_beta()
