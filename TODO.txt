@@ -1,1 +1,1 @@
-- Automatically generate Lexicon Tree(Directed Acyclic Graph) from the given words.
+- Assert transition, observation sums are equal to 1.
