@@ -8,82 +8,64 @@
    (at your option) any later version.
 '''
 
-import copy
 from Queue import Queue
+import alpha_calculator as ac
+import beta_calculator as bc 
+import numpy
 
 class ParameterEstimator:
-    def __init__(self, hmm, alpha, beta, seq):
+    def __init__(self, hmm, new_hmm, sequences):
         self.hmm = hmm
-        self.new_hmm = copy.copy(hmm)
-        self.alpha = alpha
-        self.beta = beta
-        self.seq = seq
+        self.new_hmm = new_hmm
+        self.alphabet = self.hmm.getAlphabet()
+        self.numOfStates = self.hmm.getNumOfStates()
+        self.state_probs = numpy.zeros( self.numOfStates )
+        self.tran_probs = numpy.zeros( self.numOfStates * self.numOfStates ).reshape( self.numOfStates, self.numOfStates ) 
+        self.epsil_tran_probs = numpy.zeros( self.numOfStates * self.numOfStates ).reshape( self.numOfStates, self.numOfStates ) 
+        self.obs_probs = numpy.zeros( self.numOfStates * self.numOfStates * len(self.alphabet) ).reshape( self.numOfStates, self.numOfStates, len(self.alphabet) ) 
+        self.sequences = sequences
         self.queue = Queue()
 
     def estimate(self):
-        self.estimate_transition_probability()
-        self.estimate_observation_probability()
-        return self.new_hmm
+        for seq in self.sequences:
+            a = ac.AlphaCalculator(self.hmm, seq)
+            b = bc.BetaCalculator(self.hmm, seq)
+            alpha = a.getAlpha()
+            beta = b.getBeta()
 
-    def estimate_transition_probability(self):
-        self.queue.put( self.hmm.getInitialState() )
+            self.queue.put( self.hmm.getInitialState() )
 
-        while not self.queue.empty():
-            state = self.queue.get()
-            neighbors = self.hmm.getNeighbors(state)
+            while not self.queue.empty():
+                state = self.queue.get()
 
-            total_tran_prob = 0.0
-            for nb in neighbors:
-                tran_prob = 0.0
-                for n in range(1, len(self.seq)+1):
-                    tran_prob += self.alpha[state][n-1] * self.hmm.getObsProb(state, nb, self.seq[n-1]) * self.hmm.getTranProb(state, nb) * self.beta[nb][n]
+                for nb in self.hmm.getNeighbors(state):
+                    for t in range(1, len(seq)+1):
+                        self.tran_probs[state][nb] += alpha[state][t-1] * self.hmm.getObsProb(state, nb, seq[t-1]) * self.hmm.getTranProb(state, nb) * beta[nb][t]
+                        self.state_probs[state] += alpha[state][t-1] * self.hmm.getObsProb(state, nb, seq[t-1]) * self.hmm.getTranProb(state, nb) * beta[nb][t]
 
-                epsil_tran_prob = 0.0
-                for n in range(0, len(self.seq)+1):
-                    epsil_tran_prob += self.alpha[state][n] * self.hmm.getEpsilonTranProb(state, nb) * self.beta[nb][n]
-
-                # need to be normalized
-                self.new_hmm.setTranProb(state, nb, tran_prob)
-                self.new_hmm.setEpsilonTranProb(state, nb, epsil_tran_prob)
-                total_tran_prob += tran_prob
-                total_tran_prob += epsil_tran_prob
-
-                # move to the next state
-                if state != nb:
-                    self.queue.put(nb)
-
-            # normalize
-            for nb in neighbors:
-                if total_tran_prob > 0:
-                    self.new_hmm.setTranProb(state, nb, self.new_hmm.getTranProb(state, nb) / total_tran_prob)
-                    self.new_hmm.setEpsilonTranProb(state, nb, self.new_hmm.getEpsilonTranProb(state, nb) / total_tran_prob)
-
-
-    # this is an implementation of the equation (13.31) of the Fundamentals of speaker recognition
-    def estimate_observation_probability(self):
-        self.queue.put( self.hmm.getInitialState() )
-
-        while not self.queue.empty():
-            state = self.queue.get()
-            neighbors = self.hmm.getNeighbors(state)
-
-            for nb in neighbors:
-                denominator= 0.0
-                for n in range(1, len(self.seq)+1):
-                    denominator += self.alpha[state][n-1] * self.hmm.getObsProb(state, nb, self.seq[n-1]) * self.hmm.getTranProb(state, nb) * self.beta[nb][n]
-
-                # this neighbor is not reachable anymore
-                if denominator == 0.0:
-                    continue
-
-                for a in self.hmm.getAlphabet():
-                    numerator= 0.0
-                    for n in range(1, len(self.seq)+1):
-                        if a == self.seq[n-1]:
-                            numerator += self.alpha[state][n-1] * self.hmm.getObsProb(state, nb, self.seq[n-1]) * self.hmm.getTranProb(state, nb) * self.beta[nb][n]
+                        self.obs_probs[state][nb][self.alphabet.index(seq[t-1])] += alpha[state][t-1] * self.hmm.getObsProb(state, nb, seq[t-1]) * self.hmm.getTranProb(state, nb) * beta[nb][t]
                     
-                    self.new_hmm.setObsProb(state, nb, a, numerator/denominator)
+                    for t in range(0, len(seq)+1):
+                        self.epsil_tran_probs[state][nb] += alpha[state][t] * self.hmm.getEpsilonTranProb(state, nb) * beta[nb][t]
+                        self.state_probs[state] += alpha[state][t] * self.hmm.getEpsilonTranProb(state, nb) * beta[nb][t]
 
-                # move to the next state
+                    if state != nb:
+                        self.queue.put(nb)
+
+        # set
+        self.queue.put( self.hmm.getInitialState() )
+        while not self.queue.empty():
+            state = self.queue.get()
+
+            for nb in self.hmm.getNeighbors(state):
+                self.new_hmm.setTranProb(state, nb, self.tran_probs[state][nb] / self.state_probs[state])
+                self.new_hmm.setEpsilonTranProb(state, nb, self.epsil_tran_probs[state][nb] / self.state_probs[state])
+
+                for a in self.alphabet:
+                    if self.tran_probs[state][nb] == 0.0: 
+                        self.new_hmm.setObsProb(state, nb, a, 0.0)
+                    else:
+                        self.new_hmm.setObsProb(state, nb, a, self.obs_probs[state][nb][self.alphabet.index(a)] / self.tran_probs[state][nb])
+
                 if state != nb:
                     self.queue.put(nb)
