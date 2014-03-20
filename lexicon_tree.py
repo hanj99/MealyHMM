@@ -23,7 +23,7 @@ class LexiconTree:
             self.tree = nx.DiGraph()
             self.initProbabilitiesForTest()
         else:
-            self.alphabet = ['a','b'] #'c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
+            self.alphabet = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
             self.initial_state = 0
             self.final_state = None 
 

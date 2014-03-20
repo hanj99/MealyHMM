@@ -1,35 +1,27 @@
 import hmm
-import alpha_calculator as ac
-import beta_calculator as bc 
 import parameter_estimator as pe 
 import viterbi as vi 
-import lexicon_tree as lt
-import math
 
-def assertTranSum(hmm):
+def assertSum(hmm):
     for node in hmm.dag.nodes(data=True):
         neighbors = hmm.dag.successors( node[0] )
-
-        total = 0.0
+        total_tran_probs  = 0.0
             
         for nb in neighbors:
-            #self transition
-            if node[0] == nb:
-                total += hmm.dag.edge[node[0]][nb]['tran_prob']
-                
-            #transition to the final state
-            elif nb == hmm.getFinalState():
-                total += hmm.dag.edge[node[0]][nb]['tran_prob']
-                total += hmm.dag.edge[node[0]][nb]['epsil_tran_prob'] 
-            else:
-                total += hmm.dag.edge[node[0]][nb]['tran_prob'] 
-                total += hmm.dag.edge[node[0]][nb]['epsil_tran_prob'] 
+            total_tran_probs += hmm.dag.edge[node[0]][nb]['tran_prob']
+            total_tran_probs += hmm.dag.edge[node[0]][nb]['epsil_tran_prob'] 
 
-        if node[0] != hmm.getFinalState():
-            pass
-            #print total
+            total_obs_probs  = 0.0
+            for a in hmm.getAlphabet():
+              if hmm.dag.edge[node[0]][nb]['epsil_tran_prob'] != 1.0:
+                total_obs_probs += hmm.dag.edge[node[0]][nb][a]
 
-words = ['abaa', 'babb']
+            if nb != hmm.getFinalState():
+              print 'obs_probs =', node[0], nb, total_obs_probs
+
+        print 'tran_probs =', node[0], nb, total_tran_probs
+
+words = ['act', 'actor', 'action', 'active', 'actress']
 
 h = hmm.Hmm( words, test=False)
 n_h = hmm.Hmm(words, test=False)
@@ -44,7 +36,8 @@ for n in range(100):
 
     p = pe.ParameterEstimator(h, n_h, words)
     p.estimate() 
-    h.clearProb()
+
+    #assertSum(n_h)
 
     for edge in n_h.dag.edges(data=True):
         print edge
@@ -56,7 +49,7 @@ for n in range(100):
     h = tmp_h
     
 for word in words:
-    print 'real word =>', word
+    print 'obfuscated word =>', word
     v = vi.Viterbi(h, word)
 
     for i in v.getOptimalPath():
