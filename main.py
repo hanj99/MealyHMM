@@ -21,10 +21,11 @@ def assertSum(hmm):
 
         print 'tran_probs =', node[0], nb, total_tran_probs
 
-words = ['act', 'actor', 'action', 'active', 'actress']
+words = ['abaa', 'baba', 'hanj']
 
 h = hmm.Hmm( words, test=False)
 n_h = hmm.Hmm(words, test=False)
+n_h.clearProb() 
 
 print '================ initial hmm =============='
 for edge in h.dag.edges(data=True):
@@ -38,9 +39,10 @@ for n in range(100):
     p.estimate() 
 
     #assertSum(n_h)
+    #exit(1)
 
-    for edge in n_h.dag.edges(data=True):
-        print edge
+    #for edge in n_h.dag.edges(data=True):
+    #    print edge
 
     # exchange
     h.clearProb()
@@ -48,7 +50,8 @@ for n in range(100):
     n_h = h
     h = tmp_h
     
-for word in words:
+obfuscated = ['hana']
+for word in obfuscated:
     print 'obfuscated word =>', word
     v = vi.Viterbi(h, word)
 
