@@ -17,14 +17,22 @@ def assertSum(hmm):
                 total_obs_probs += hmm.dag.edge[node[0]][nb][a]
 
             if nb != hmm.getFinalState():
-              print 'obs_probs =', node[0], nb, total_obs_probs
+                print 'obs_probs =', node[0], nb, total_obs_probs
+                if total_obs_probs < 0.9:
+                    exit(1)
+               
 
-        print 'tran_probs =', node[0], nb, total_tran_probs
+        if nb != hmm.getFinalState():
+            print 'tran_probs =', node[0], nb, total_tran_probs
+            if total_tran_probs < 0.9:
+                exit(1)
 
-words = ['abaa', 'baba', 'hanj']
 
-h = hmm.Hmm( words, test=False)
-n_h = hmm.Hmm(words, test=False)
+real_words = ['abababbb', 'bababaaa']
+training_words = ['abababbb', 'bababaaa', 'abababab', 'babababa', 'abababaa', 'bababbab', 'abaaabbb', 'babbbaaa', 'abbaabbb']
+
+h = hmm.Hmm( real_words, test=False)
+n_h = hmm.Hmm( real_words, test=False)
 n_h.clearProb() 
 
 print '================ initial hmm =============='
@@ -32,26 +40,26 @@ for edge in h.dag.edges(data=True):
     print edge
 print '================ ========================'
 
-for n in range(100):
+for n in range(50):
     print '======== training =>', n 
 
-    p = pe.ParameterEstimator(h, n_h, words)
+    p = pe.ParameterEstimator(h, n_h, training_words)
     p.estimate() 
 
+    for edge in n_h.dag.edges(data=True):
+        print edge
     #assertSum(n_h)
-    #exit(1)
-
-    #for edge in n_h.dag.edges(data=True):
-    #    print edge
 
     # exchange
     h.clearProb()
     tmp_h = n_h
     n_h = h
     h = tmp_h
+
+for edge in h.dag.edges(data=True):
+    print edge
     
-obfuscated = ['hana']
-for word in obfuscated:
+for word in training_words:
     print 'obfuscated word =>', word
     v = vi.Viterbi(h, word)
 

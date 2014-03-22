@@ -46,7 +46,7 @@ class LexiconTree:
     def fit(self, words):
         if self.test == False:
             self.tree.add_node( self.initial_state, {'sym':'init'} ) 
-            #self.tree.add_edge( self.initial_state, self.initial_state )
+            self.tree.add_edge( self.initial_state, self.initial_state )
 
             for word in words:
                 c_state = self.getInitialState() # current state
@@ -205,8 +205,8 @@ class LexiconTree:
                 epsil = 0.2 
                 sel = 0.1
 
-        expected_char = 0.8
-        random_char = 0.2 / (len(self.alphabet)-1)
+        expected_char = 0.9
+        random_char = 0.1 / (len(self.alphabet)-1)
         return tran, epsil, sel, expected_char, random_char
 
 if __name__ == '__main__':

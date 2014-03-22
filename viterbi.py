@@ -65,12 +65,8 @@ class Viterbi:
                 else:
                     epsil_tran_alpha_max = 0.0
 
-                if tran_alpha_max == 0.0 and epsil_tran_alpha_max == 0.0:
-                    self.alpha_hat[state][t] = 0.0 
-                    self.optimal_path[state][t] = 0
-                    self.epsilon_path[state][t] = False
 
-                elif tran_alpha_max >= epsil_tran_alpha_max:
+                if tran_alpha_max >= epsil_tran_alpha_max:
                     self.alpha_hat[state][t] = tran_alpha_max
                     self.optimal_path[state][t] = tran_path_list[ tran_alpha_hat_list.index( tran_alpha_max ) ]
                     self.epsilon_path[state][t] = False
