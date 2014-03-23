@@ -29,7 +29,7 @@ def assertSum(hmm):
 
 
 real_words = ['abababbb', 'bababaaa']
-training_words = ['abababbb', 'bababaaa', 'abababab', 'babababa', 'abababaa', 'bababbab', 'abaaabbb', 'babbbaaa', 'abbaabbb']
+training_words = ['abababbb', 'bababaaa', 'abababab', 'babababa', 'abababaa', 'bababbab', 'abaaabbb', 'babbbaaa', 'abababbaa'] 
 
 h = hmm.Hmm( real_words, test=False)
 n_h = hmm.Hmm( real_words, test=False)
@@ -40,7 +40,7 @@ for edge in h.dag.edges(data=True):
     print edge
 print '================ ========================'
 
-for n in range(50):
+for n in range(100):
     print '======== training =>', n 
 
     p = pe.ParameterEstimator(h, n_h, training_words)
@@ -63,5 +63,7 @@ for word in training_words:
     print 'obfuscated word =>', word
     v = vi.Viterbi(h, word)
 
-    for i in v.getOptimalPath():
+    optimal_path, epsilon_path = v.getOptimalPath()
+    print epsilon_path
+    for i in optimal_path:
         print h.dag.node[i]['sym'], i
