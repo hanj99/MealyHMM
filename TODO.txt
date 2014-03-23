@@ -1,1 +1,2 @@
-- Assert transition, observation sums are equal to 1.
+- (save / load) trained HMM (into / from) the file.
+- Test case for the trained HMM
